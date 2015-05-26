@@ -1,0 +1,118 @@
+body {
+	font-family: Arial, "Microsoft YaHei", "宋体", Helvetica, sans-serif;
+	font-weight: bold;
+	line-height: 125%;
+	color: LightGoldenRodYellow;
+	background-color: black;
+}
+div.slide {
+	font-size: 24pt;
+	padding: 5%;
+	display: block;
+	max-width: 960px;
+	margin: 0 auto;
+}
+div.slide h1 {
+	font-size: 130%;
+}
+div.slide a {
+	color: lightblue;
+}
+div.slide a:hover {
+	color: lightred;
+}
+div.slide.titlepage h1.title {
+	color: khaki;
+	padding-top: 20%;
+	font-size: 140%;
+}
+div.slide.titlepage p.author {
+}
+div.slide.titlepage p.date {
+	color: lightblue;
+}
+div.toolbar {
+	height: 4%;
+	border-top: solid 1px #333333;
+	background-color: #000000;
+	color: #cccc99;
+}
+div.toolbar a:link {
+	color: #ccccff;
+}
+div.toolbar a:visited {
+	color: #ccccff;
+}
+div.slidy_toc {
+	background-color: #333333;
+	color: #cccc99;
+}
+div.slidy_toc a {
+	color: lightgray;
+}
+div.slidy_toc a:hover {
+	color: red;
+}
+div.initial_prompt {
+	background-color: #000000;
+	color: #999966;
+}
+div.cite_person {
+	text-align: right;
+	margin-right: 15%;
+}
+img {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 80%;
+}
+div.sourceCode {
+	margin: 0;
+}
+pre {
+	margin: 0 0 0 1em;
+	background-color: #ccc;
+	color: black;
+	border-width: thin;
+	border-color: #95abd0;
+	overflow: auto;
+}
+pre.sourceCode {
+	margin: 0;
+	background-color: #eee;
+	border-left-width: 1em;
+}
+pre code {
+	font-family: monospace;
+	font-weight: normal;
+	font-size: 80%;
+}
+pre.sourceCode code.sourceCode {
+	color: #00428c;
+	font-size: 80%;
+	font-weight: bold;
+}
+blockquote {
+	border: 1px solid white;
+	margin: 10px;
+	padding: 10px;
+}
+blockquote p, blockquote p li {
+	margin: 10px;
+	padding: 0;
+	font-size: 80%;
+	line-height: 80%;
+	font-weight: normal;
+}
+div#acknowledge {
+	margin-top: 2em;
+	text-align: center;
+	font-style: italic;
+	font-size: 240%;
+}
+div#githubSource {
+	margin-top: 1em;
+	text-align: center;
+	font-family: monospace;
+}

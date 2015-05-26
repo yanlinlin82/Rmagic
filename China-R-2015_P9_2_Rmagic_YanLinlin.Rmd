@@ -1,0 +1,503 @@
+---
+title: 解构R语言中的“黑魔法”
+author: 颜林林
+date: 2015年6月7日 @ 北大
+output:
+  slidy_presentation:
+    css: styles.css
+    highlight: pygments
+    mathjax: null
+---
+
+```{r init, echo = FALSE}
+library(knitr)
+options(width = 60)
+```
+
+# 主要内容
+
+- 魔法初窥
+- 魔法拆解
+	- 函数与运算符
+	- 函数与对象封装
+	- 函数的特性：闭包
+	- 函数的特性：惰性求值
+	- 语法解析与构建
+- 魔法实战
+
+---
+
+# 魔法初窥：ggplot
+
+- 变量显示即绘图
+	```{r r_code_line_counting, echo = FALSE, message = FALSE}
+library(dplyr)
+s <- readLines("China-R-2015_P9_2_Rmagic_YanLinlin.Rmd")
+n <- cumsum(s == "---")
+a <- grep("^\\s*```", s)
+odd <- function(x) x[seq(1, length(x), 2)]
+mcode <- data.frame(slide = n[odd(a)],
+                    lines = odd(diff(a)) - 1,
+                    visible = !grepl(", echo = FALSE", s[odd(a)])) %>%
+	filter(visible) %>%
+    group_by(slide) %>%
+    summarize(lines = sum(lines))
+```
+	```{r plot_r_code_lines, echo = TRUE, message = FALSE, fig.width = 5, fig.height = 3.5}
+library(ggplot2)
+g <- ggplot(mcode, aes(x = slide, y = lines)) +
+        geom_point(size = 3, color = "red") +
+        labs(title = "本幻灯片中R代码分布情况") +
+        xlab("幻灯片编号") + ylab("R代码行数")
+g # 结果输出到图形窗口，而非终端
+```
+
+---
+
+# 魔法初窥：管道 (1)
+
+- 多层函数调用
+	```{r pipe_demo_1}
+# 求代码最多的三张幻灯片的总代码行数
+sum(head(sort(mcode$lines, decreasing = TRUE), 3))
+```
+
+- 管道写法
+	```{r pipe_demo_2, results = "hide"}
+library(dplyr) # 或 library(magrittr)
+mcode$lines %>%
+    sort(decreasing = TRUE) %>%
+    head(3) %>%
+    sum
+```
+
+---
+
+# 魔法初窥：管道 (2)
+
+- 另一种管道写法
+	```{r pipe_demo_3, results = "hide"}
+library(pipeR)
+Pipe(mcode$lines) $
+    sort(decreasing = TRUE) $
+    head(3) $
+    sum
+```
+
+---
+
+# 魔法初窥：管道 (3)
+
+- 再一种管道写法
+	```{r pipe_demo_5, results = "hide"}
+library(pipeR)
+pipeline({
+    mcode$lines
+    sort(decreasing = TRUE)
+    head(3)
+    sum
+})
+```
+
+---
+
+# 魔法拆解
+
+- 函数与运算符
+- 函数与对象封装
+- 函数的特性：闭包
+- 函数的特性：惰性求值
+- 语法解析与构建
+
+---
+
+# 魔法拆解：函数与运算符 (1)
+
+- 函数
+
+	```{r operator_1a}
+add <- function(a, b) paste(a, b, sep = ", ")
+add("hello", "magic")
+```
+
+- 自定义运算符
+
+	```{r operator_1b}
+`%+%` <- function(a, b) paste(a, b, sep = ", ")
+"hello" %+% "magic"
+```
+
+---
+
+# 魔法拆解：函数与运算符 (2)
+
+- 运算符的函数写法
+
+	```{r operator_2}
+`%+%`("hello", "magic")
+`+`(2, 3)    # 2 + 3
+`<-`(a, 1:5) # a <- 1:5
+`[`(a, 3)    # a[3]
+```
+
+---
+
+# 魔法拆解：函数与运算符 (3)
+
+- 运算符的本质：改变函数调用的书写方式及顺序
+
+	```{r operator_3, echo = FALSE, fig.width = 6, fig.height = 2}
+circle <- function(x, y, r, label = "", col = "gold", fill = "gray33", ..., n = 100) {
+	polygon(x + r * sin(2 * pi * (1:n) / n),
+			y + r * cos(2 * pi * (1:n) / n),
+			border = col, col = fill, ...)
+	if (label != "") {
+		text(x, y, label, adj = c(.5, .5), col = col, ...)
+	}
+}
+circle_box <- function(x, y, r, w, label = "", col = "gold", fill = "gray33", ..., n = 100) {
+	polygon(c(x + w / 2 + r * sin(pi * (0:n) / n),
+			  x - w / 2 - r * sin(pi * (0:n) / n)),
+			c(y + r * cos(pi * (0:n) / n),
+			  y - r * cos(pi * (0:n) / n)),
+			border = col, col = fill, ...)
+	if (label != "") {
+		text(x, y, label, adj = c(.5, .5), col = col, ...)
+	}
+}
+par(mar = rep(0, 4), bg = "black", fg = "white")
+plot.new()
+plot.window(c(0, 6), c(0.5, 2.5))
+circle_box(1.2, 2, .3, .6, "运算符", cex = 1.5, font = 2)
+circle_box(0.5, 1, .3, .4, "左值", cex = 1.5, font = 2)
+circle_box(1.9, 1, .3, .4, "右值", cex = 1.5, font = 2)
+circle(4,   2, .3, "+", cex = 2)
+circle(3.5, 1, .3, "a", cex = 2)
+circle(4.5, 1, .3, "b", cex = 2)
+segments(c(0.7, 1.7, 3.7, 4.3),
+         c(1.4, 1.4, 1.4, 1.4),
+         c(0.9, 1.5, 3.8, 4.2),
+         c(1.6, 1.6, 1.6, 1.6))
+```
+
+	- 前缀表示：`+` `a` `b`  ，或写成函数形式：`+(a, b)`
+	- 中缀表示：`a` `+` `b`
+	- 后缀表示：`a` `b` `+`
+
+---
+
+# 魔法拆解：函数与运算符 (4)
+
+- 运算符的运用：拆解管道魔法
+
+	```{r pipe_operator4, fig.width = 5, fig.height = 3.5}
+`%|%` <- function(x, fun) fun(x)
+mcode$lines %|% sort %|% plot # plot(sort(mcode$lines))
+```
+
+---
+
+# 魔法拆解：函数与对象封装 (1)
+
+- S3类：类是属性
+
+	```{r s3class_1}
+a <- c(123, 45, 6, 7890)
+class(a) <- "my_set"
+a
+```
+
+---
+
+# 魔法拆解：函数与对象封装 (2)
+
+- S3类：隐藏的函数调用
+
+	```{r s3class_2a}
+print.my_set <- function(x) {
+    cat("{", paste(x, collapse = ", "), "}\n")
+}
+a # 查看变量值
+```
+
+	等价于
+	```{r s3class_2b, results = "hide"}
+print(a)
+print.my_set(a)
+```
+
+---
+
+# 魔法拆解：函数与对象封装 (3)
+
+- S3类的运用：拆解ggplot2魔法
+
+	```{r s3class_3, fig.width = 5, fig.height = 4}
+print.my_plot <- function(x) plot(x, type = "b")
+a <- mcode$lines
+class(a) <- "my_plot"
+a # 查看变量值
+```
+
+---
+
+# 魔法拆解：函数与对象封装 (4)
+
+- S3类对象的运算符：拆解ggplot2和`$`管道魔法
+
+	```{r s3class_4, fig.width = 5, fig.height = 4}
+`+.my_plot` <- function(x, y) { attr(x, "col") <- y; x }
+`$.my_plot` <- function(x, y) { attr(x, "type") <- y; x }
+print.my_plot <- function(x) {
+    plot(x, col = attr(x, "col"), type = attr(x, "type"))
+}
+a $ "h" + "red"
+```
+
+---
+
+# 魔法拆解：函数的特性：闭包 (1)
+
+- R语言的函数定义
+	```{r clousure_1}
+add <- function(a, b) {
+    return (a + b)
+}
+```
+
+	也就是说，我们可以构造一个返回函数的函数
+
+---
+
+# 魔法拆解：函数的特性：闭包 (2)
+
+- 构造一个返回函数的函数
+	```{r clousure_2}
+add_maker <- function(a) {
+    return (function(x) x + a)
+}
+add3 <- add_maker(3)
+add3(1:3)
+add5 <- add_maker(2 + 3)
+add5(1:3)
+```
+
+---
+
+# 魔法拆解：函数的特性：闭包 (3)
+
+- 词法作用域（lexical scope）
+	```{r clousure_3}
+add
+add3
+add5
+environment(add)
+```
+	闭包：带有环境的函数（不同于C/C++中的函数指针）
+
+---
+
+# 魔法拆解：函数的特性：闭包 (4)
+
+- 查看闭包内容
+	```{r clousure_4}
+ls(envir = environment(add5))
+get("a", envir = environment(add5))
+```
+	闭包中的`a`，已是计算完成的“`5`”，而不再是原始传入的“`2 + 3`”
+
+---
+
+# 魔法拆解：函数的特性：惰性求值 (1)
+
+- 举例
+
+	```{r lazy_eval_1, results = "hide"}
+ifelse(TRUE, 1 + 2, 3 + 4)
+```
+
+	上例中的两个加法都会被执行吗？
+
+---
+
+# 魔法拆解：函数的特性：惰性求值 (2)
+
+- 揭示真相
+
+	```{r lazy_eval_2, error = TRUE}
+suppressWarnings(rm(a, b))
+ifelse(TRUE, a, b)
+ifelse(FALSE, a, b)
+```
+
+---
+
+# 魔法拆解：函数的特性：惰性求值 (3)
+
+- 事实上，不仅ifelse，所有的函数都如此：若非需要，则根本不会去解析计算传入的参数
+
+- 一个常遇到但也常被忽视的例子：包的引用
+
+	```{r lazy_eval_3a}
+library(dplyr)
+```
+	```{r lazy_eval_3b, error = TRUE}
+dplyr
+```
+	其函数内部使用了如下语句来转换第一个参数为字符串：
+
+	```{r lazy_eval_3c, eval = FALSE}
+library <- function(package, ...) {
+    ...
+    package <- as.character(substitute(package))
+    ...
+}
+```
+
+---
+
+# 魔法拆解：函数的特性：惰性求值 (4)
+
+- 再来一个自定义函数
+	```{r lazy_eval_4}
+foo <- function(arg) {
+    cat("I don't care the 'arg'\n")
+}
+foo(a-variable-that-does-not-exist)
+```
+
+---
+
+# 魔法拆解：语法解析与构建 (1)
+
+- 基本函数
+
+    - substitute()
+	- quote()
+    - parse()
+    - deparse()
+    - match.call()
+    - eval()
+
+---
+
+# 魔法拆解：语法解析与构建 (2)
+
+- 语法解析
+	```{r syntax_parse_2}
+substitute({a;b})
+```
+
+---
+
+# 魔法拆解：语法解析与构建 (3)
+
+- 语法解析
+	```{r syntax_parse_3}
+as.list(substitute(foo(x, bar(y, z), 123)))
+```
+
+---
+
+# 魔法拆解：语法解析与构建 (4)
+
+- 获取当前正在运行的函数名
+	```{r get_func_name}
+foo <- function() match.call()[[1]]
+foo()
+bar <- foo
+bar()
+```
+
+---
+
+# 魔法实战
+
+- 构造“阅后即焚”的函数
+- 洞悉真相的法宝
+
+---
+
+# 魔法实战：“阅后即焚”的函数 (1)
+
+- 实现示例
+	```{r destabilize_func}
+destabilize <- function(func) {
+    a <- deparse(func)
+    a <- c(head(a, -1),
+           quote(rm(list = as.character(match.call()[[1]]),
+                    envir = sys.frame(-1))),
+           tail(a, 1))
+    assign(as.character(substitute(func)),
+           eval(parse(text = a)),
+           envir = environment(func))
+}
+```
+
+---
+
+# 魔法实战：“阅后即焚”的函数 (2)
+
+- 效果演示
+	```{r destabilize_func_demo, error = TRUE}
+foo <- function() {
+    cat("Hi, I am disappearing...\n")
+}
+
+destabilize(foo)
+
+foo() # 第一次调用
+foo() # 第二次调用
+```
+
+---
+
+# 魔法实战：洞悉真相的法宝
+
+- 基本函数
+	- typeof()
+	- class()
+    - unclass()
+    - dput()
+	- trace()
+	- debug()
+
+---
+
+# 总结
+
+>
+> - “All magic comes with a price.” 
+>
+> - “Magic is not what you see. Magic is what you feel.”
+>
+> —— 美剧《童话镇（Once Upon a Time）》
+
+<div id="acknowledge">谢谢！</div>
+
+<div id="githubSource">http://github.com/yanlinlin82/Rmagic</div>
+
+---
+
+# 参考文献及网站
+
+- [R Internals](http://cran.r-project.org/doc/manuals/R-ints.html)
+- [R Language Definition](http://cran.r-project.org/doc/manuals/R-lang.html)
+- Hadley Wickham, [Advanced R](http://adv-r.had.co.nz/)
+- Joseph Adler, [R in a nutshell](http://www.amazon.com/R-Nutshell-In-OReilly/dp/144931208X), 2ed, O'Reilly, 2012
+
+---
+
+# 附：我的R环境
+
+```{r sessionInfo, collapse = TRUE}
+sessionInfo()
+```
+
+---
+
+# 附：本幻灯片中R代码统计
+
+```{r r_code_line_stat}
+t(mcode)
+```
