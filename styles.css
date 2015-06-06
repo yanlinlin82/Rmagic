@@ -1,9 +1,9 @@
 body {
-	font-family: Arial, "Microsoft YaHei", "宋体", Helvetica, sans-serif;
+	font-family: Arial, "宋体", Helvetica, sans-serif;
 	font-weight: bold;
 	line-height: 125%;
-	color: LightGoldenRodYellow;
-	background-color: black;
+	color: lightgray;
+	background: black url("bg.jpg") fixed;
 }
 div.slide {
 	font-size: 24pt;
@@ -13,28 +13,53 @@ div.slide {
 	margin: 0 auto;
 }
 div.slide h1 {
-	font-size: 130%;
+	font-size: 120%;
+	margin: .5em 0;
+	padding: 0;
 }
 div.slide a {
-	color: lightblue;
+	color: lightyellow;
 }
 div.slide a:hover {
-	color: lightred;
+	color: lightpink;
 }
 div.slide.titlepage h1.title {
-	color: khaki;
-	padding-top: 20%;
-	font-size: 140%;
+	margin: 0 auto;
+	padding: 200px 0 0 0;
+	width: 800px;
+	height: 100px;
+	background-image: url("title.png");
+	color: transparent;
+	font-size: 180%;
 }
-div.slide.titlepage p.author {
-}
+div.slide.titlepage p.author,
 div.slide.titlepage p.date {
-	color: lightblue;
+	margin: 1em auto;
+	padding: 0 120px;
+	width: 560px;
+	text-align: right;
+	color: #725be4;
+}
+div.slide.toc h1 {
+	font-size: 140%;
+	text-align: center;
+}
+div.slide.toc ul {
+	list-style-type: none;
+	text-align: center;
+	margin-top: 10%;
+}
+div.slide.toc ul li {
+	list-style: none;
+	font-size: 120%;
+	text-indent: .3em;
+	letter-spacing: .3em;
+	line-height: 2em;
 }
 div.toolbar {
 	height: 4%;
 	border-top: solid 1px #333333;
-	background-color: #000000;
+	background-color: transparent;
 	color: #cccc99;
 }
 div.toolbar a:link {
@@ -44,7 +69,8 @@ div.toolbar a:visited {
 	color: #ccccff;
 }
 div.slidy_toc {
-	background-color: #333333;
+	background-color: black;
+	font-weight: normal;
 	color: #cccc99;
 }
 div.slidy_toc a {
@@ -54,65 +80,37 @@ div.slidy_toc a:hover {
 	color: red;
 }
 div.initial_prompt {
-	background-color: #000000;
-	color: #999966;
-}
-div.cite_person {
-	text-align: right;
-	margin-right: 15%;
+	background-color: transparent;
+	color: gray;
 }
 img {
 	display: block;
-	margin-left: auto;
-	margin-right: auto;
+	margin: 1em auto;
 	max-width: 80%;
 }
-div.sourceCode {
-	margin: 0;
+div.acknowledge {
+	text-align: center;
 }
-pre {
-	margin: 0 0 0 1em;
-	background-color: #ccc;
-	color: black;
-	border-width: thin;
-	border-color: #95abd0;
-	overflow: auto;
-}
-pre.sourceCode {
-	margin: 0;
-	background-color: #eee;
-	border-left-width: 1em;
-}
-pre code {
-	font-family: monospace;
-	font-weight: normal;
-	font-size: 80%;
-}
-pre.sourceCode code.sourceCode {
-	color: #00428c;
-	font-size: 80%;
-	font-weight: bold;
-}
-blockquote {
-	border: 1px solid white;
-	margin: 10px;
-	padding: 10px;
-}
-blockquote p, blockquote p li {
-	margin: 10px;
-	padding: 0;
-	font-size: 80%;
-	line-height: 80%;
-	font-weight: normal;
-}
-div#acknowledge {
-	margin-top: 2em;
+div.acknowledge h1 {
+	margin-top: 30%;
 	text-align: center;
 	font-style: italic;
 	font-size: 240%;
 }
-div#githubSource {
-	margin-top: 1em;
+div.acknowledge a {
+	margin-top: 10%;
 	text-align: center;
 	font-family: monospace;
+}
+pre {
+	margin: 0;
+	background-color: lightgray;
+	overflow: auto;
+}
+pre.sourceCode {
+	background-color: ghostwhite;
+}
+pre code, pre.sourceCode code {
+	font-size: 75%;
+	font-weight: bold;
 }

@@ -2,3 +2,5 @@
 .*.swp
 .RData
 .Rhistory
+*cache
+*files
